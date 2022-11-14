@@ -13,33 +13,16 @@ CREATE CATALOG iceberg_hive_catalog WITH (
 );
 
 
-CREATE TABLE `iceberg_hive_catalog`.`iceberg_db`.`table_v1_2` (
-                                                                  `id` bigINT NOT NULL,
-                                                                  `data` string NOT NULL
-) comment '普通表v1'
-WITH (
-  'engine.hive.enabled' = 'true',
-  'write.metadata.delete-after-commit.enabled'='true',
-  'write.metadata.previous-versions-max'='5'
-);
-
-
 CREATE TEMPORARY TABLE datagen_source(
-  id BIGINT,
-  data STRING,
-   ts AS localtimestamp,
- WATERMARK FOR ts AS ts
+    id BIGINT,
+    data STRING,
+    ts AS localtimestamp,
+
+    WATERMARK FOR ts AS ts
 ) WITH (
   'connector' = 'datagen',
   'rows-per-second' = '100'
 );
-
-
-set execution.checkpointing.interval = '30s';
-
-
-insert into table_v1_pb select id, data,  DATE_FORMAT(ts, 'yyyy-MM-dd HH:mm') from datagen_source;
-
 
 add jar hdfs://emr-cluster/iceberg/jars/iceberg-hive-runtime-1.2.0-SNAPSHOT.jar;
 
@@ -69,35 +52,24 @@ WITH (
 );
 
 
+CREATE TABLE `iceberg_hive_catalog`.`iceberg_db`.`table_v2` (
+    `id` bigINT NOT NULL,
+    `data` string NOT NULL,
+    PRIMARY KEY (`id`) NOT ENFORCED
+) comment '更新表'
+WITH (
+    'engine.hive.enabled' = 'true',
+    'write.metadata.delete-after-commit.enabled'='true',
+    'write.metadata.previous-versions-max'='5',
+    'format-version'='2',
+    'write.upsert.enabled' = 'true'
+);
 
 
+set execution.checkpointing.interval = '30s';
 
 
-
-
-
-
-
-
-===================================
-
-
-
-
-CREATE TABLE `iceberg_hive_catalog`.`iceberg_db`.`table_v1` (
-                                                                `id` bigINT NOT NULL,
-                                                                `data` string NOT NULL,
-                                                                PRIMARY KEY (`id`) NOT ENFORCED
-) WITH (
-      'engine.hive.enabled' = 'true',
-      'format-version'='2',
-      'write.upsert.enabled' = 'true'
-      );
-
-INSERT INTO iceberg_sink4 /*+ OPTIONS('upsert-enabled'='true') */
-VALUES (1, 'A'), (2, 'BB'), (3, 'CCC');
-
-
-
+insert into table_v2 /*+ OPTIONS('upsert-enabled'='true') */
+select id, data from datagen_source;
 
 

@@ -52,7 +52,7 @@ public class RewriteDataFiles {
         catalog.initialize("hive", properties);
 
         // 加载表
-        TableIdentifier name = TableIdentifier.of("iceberg_db", "table_v1_pb");
+        TableIdentifier name = TableIdentifier.of("iceberg_db", "table_v2");
         Table table = catalog.loadTable(name);
         long l = table.currentSnapshot().snapshotId();
         System.out.println(l);
