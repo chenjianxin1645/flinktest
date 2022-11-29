@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  *  可以通过提交Flink批量任务来合并Data Files 文件。
  */
@@ -31,8 +32,10 @@ public class RewriteDataFiles {
         conf.addResource("hadoop/core-site.xml");
         conf.addResource("hadoop/hdfs-site.xml");
         conf.addResource("hive/hive-site.xml");
+//        conf.addResource("hive/");
+//        conf.addResource("hadoop");
         System.out.println(conf.get("dfs.namenode.http-address.emr-cluster.nn2"));
-//        System.exit(0);
+        System.exit(0);
 
         // Using a Hadoop catalog
 //        String warehousePath = "hdfs://emr-cluster/iceberg/warehouse";

@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: flink
+  name: flink-jobmanager
+spec:
+  template:
+    metadata:
+      labels:
+        app: flink
+        component: jobmanager
+    spec:
+      serviceAccountName: flink
+      restartPolicy: OnFailure # Always、OnFailure 和 Never
+      containers:
+        - name: jobmanager
+          image: flink-xander:1.16.0-scala_2.12
+          env:
+          # 需要手动去修改任务提交 外部提交作业传递
+          args: ["standalone-job", "--job-classname", "org.apache.flink.streaming.examples.windowing.TopSpeedWindowing"] # 可选的参数项: ["--job-id", "<job id>", "--fromSavepoint", "/path/to/savepoint", "--allowNonRestoredState"]
+#          args: ["standalone-job"] # 可选的参数项: ["--job-id", "<job id>", "--fromSavepoint", "/path/to/savepoint", "--allowNonRestoredState"]
+          ports:
+            - containerPort: 6123
+              name: rpc
+            - containerPort: 6124
+              name: blob-server
+            - containerPort: 8081
+              name: webui
+          livenessProbe:
+            tcpSocket:
+              port: 6123
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          volumeMounts:
+            - name: flink-config-volume
+              mountPath: /opt/flink/conf
+#            - name: job-artifacts-volume
+#              mountPath: /opt/flink/usrlib
+          securityContext:
+            runAsUser: 9999  # 参考官方 flink 镜像中的 _flink_ 用户，如有必要可以修改
+      volumes:
+        - name: flink-config-volume
+          configMap:
+            name: flink-config
+            items:
+              - key: flink-conf.yaml
+                path: flink-conf.yaml
+              - key: log4j-console.properties
+                path: log4j-console.properties
+#        - name: job-artifacts-volume
+#          hostPath:
+#            # 需要手动去修改任务提交
+#            path: /var/www/project/xander/flink/flink-1.16.0/examples/streaming

@@ -1,0 +1,53 @@
+
+========== k8s dashboard ==========
+https://github.com/kubernetes/dashboard
+https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+
+kubectl  create token admin-user -n kubernetes-dashboard --duration=0s
+
+eyJhbGciOiJSUzI1NiIsImtpZCI6IjZkTmFfWXAwcThYUWN5SEd1VDZQbTBobFJxNmU3UVc2UXJTWWVvVEY3VkkifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNjY5MTg3MjIzLCJpYXQiOjE2NjkxODM2MjMsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJhZG1pbi11c2VyIiwidWlkIjoiOWQxM2UyODItODEyZi00OGRmLWE5YzAtMGRiOGFmN2I1ZTQyIn19LCJuYmYiOjE2NjkxODM2MjMsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlcm5ldGVzLWRhc2hib2FyZDphZG1pbi11c2VyIn0.o1ewUeMoIK82RRim24sB7MTiM8eb5vsfrOkcffGGUZE1geXy1UgGEBvt29a78_xoxyFkqgPbnNl4Y1lrUNzaqqhS7-xKdJ8V2hQoOTlVkeFpNk94jEogZ9o4-EBs8JOFKZZIg79e3dTl8T5WLWLZzYog42jzcdNRqU8xBMO0QN08H3jhpjpwrqbGZCW_6yoIrYpu9qmA2Nbwotv4gntNczpy0x3MJvcNtzz5GYl-NIfukA8KrzT7pKtnFAf2CqTZnwuKNTXl4LkLKcE5p-tNnASxERYHm16NhVcrwUhzjTAGs_CyGgB2Jab6xsqNgrg1DtY--T8ooCwx2b7qvBvYJA
+
+
+===========================
+
+
+
+========== harbor  ==========
+docker.json
+{
+  "insecure-registries": ["http://192.168.10.217:8074"]
+}
+
+wb harbor repo:
+    http://192.168.10.217:8074/
+    admin
+    Harbor12345
+
+
+kubectl create secret docker-registry harbor --namespace=flink --docker-server=192.168.10.217:8074 --docker-username=admin --docker-password=Harbor12345
+kubectl get secret harbor -n flink
+kubectl delete secret harbor -n flink
+
+containers:                #定义容器信息
+    - name: nginx                  #容器名，与标签名要相同
+        image: 192.168.10.217:8074/project/nginx:test   #容器使用的镜像以及版本
+imagePullSecrets:        #使用的secret
+    - name: harbor          #使用前面创建的secret密钥
+
+
+docker pull flink:1.16.0-scala_2.12
+docker tag apache/flink:1.16-scala_2.12 192.168.10.217:8074/bigdata/flink:1.16-scala_2.12
+docker push 192.168.10.217:8074/bigdata/flink:1.16-scala_2.12
+
+===================================
+
+
+
+
+
+
+
+
+

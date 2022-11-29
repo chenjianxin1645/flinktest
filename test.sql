@@ -3,6 +3,16 @@
 
 mvn install:install-file -DgroupId=org.apache.iceberg -DartifactId=iceberg-flink-runtime -Dversion=1.16-1.2.0-SNAPSHOT -Dpackaging=jar -Dfile=/private/var/www/project/xander/flink/iceberg/flink/v1.16/flink-runtime/build/libs/iceberg-flink-runtime-1.16-1.2.0-SNAPSHOT.jar
 
+
+catalogs:
+  - name: iceberg_hive_catalog
+    type: iceberg
+    catalog-type: hive
+    uri: thrift://172.16.220.100:9083,thrift://172.16.220.102:9083
+    property-version: 1
+    warehouse: hdfs://emr-cluster/iceberg/warehouse
+
+
 CREATE CATALOG iceberg_hive_catalog WITH (
   'type'='iceberg',
   'catalog-type'='hive',
@@ -11,7 +21,8 @@ CREATE CATALOG iceberg_hive_catalog WITH (
   'property-version'='1',
   'warehouse'='hdfs://emr-cluster/iceberg/warehouse'
 );
-
+use catalog iceberg_hive_catalog;
+use database iceberg_db;
 
 CREATE TEMPORARY TABLE datagen_source(
     id BIGINT,
@@ -72,4 +83,33 @@ set execution.checkpointing.interval = '30s';
 insert into table_v2 /*+ OPTIONS('upsert-enabled'='true') */
 select id, data from datagen_source;
 
+
+
+CREATE temporary TABLE temp_table_v2_2 (
+    id   BIGINT,
+    data STRING
+) WITH (
+    'connector'='iceberg',
+    'catalog-type'='hive',
+    'catalog-name'='iceberg_hive_catalog',
+    'catalog-database'='iceberg_db',
+    'catalog-table'='table_v2',
+    'uri'='thrift://172.16.220.100:9083,thrift://172.16.220.102:9083',
+    'warehouse'='hdfs://emr-cluster/iceberg/warehouse'
+);
+
+
+
+spark.sql.catalog.iceberg_hive_catalog = org.apache.iceberg.spark.SparkCatalog
+spark.sql.catalog.iceberg_hive_catalog.type = hive
+spark.sql.catalog.iceberg_hive_catalog.uri = thrift://172.16.220.100:9083,thrift://172.16.220.102:9083
+# omit uri to use the same URI as Spark: hive.metastore.uris in hive-site.xml
+
+
+add jar hdfs://emr-cluster/iceberg/jars/iceberg-spark-runtime-2.4-1.2.0-SNAPSHOT.jar;
+add jar hdfs://emr-cluster/iceberg/jars/iceberg-hive-runtime-1.2.0-SNAPSHOT.jar;
+
+spark-sql --jars /home/hadoop/xander/bigdata/iceberg/iceberg-hive-runtime-1.2.0-SNAPSHOT.jar --driver-class-path /home/hadoop/xander/bigdata/iceberg/iceberg-hive-runtime-1.2.0-SNAPSHOT.jar
+
+spark-sql --jars /home/hadoop/xander/bigdata/iceberg/iceberg-spark-runtime-2.4-1.2.0-SNAPSHOT.jar --driver-class-path /home/hadoop/xander/bigdata/iceberg/iceberg-spark-runtime-2.4-1.2.0-SNAPSHOT.jar
 
