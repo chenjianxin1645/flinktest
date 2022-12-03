@@ -1,6 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
+  namespace: flink
   name: flink-jobmanager
 spec:
   parallelism: 2 # 通过设置大于 1 的整型值来开启 Standby JobManager
@@ -13,7 +14,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: jobmanager
-          image: apache/flink:1.16.0-scala_2.12
+          image: flink-xander:1.16.0-scala_2.12
           env:
             - name: POD_IP
               valueFrom:
@@ -22,7 +23,8 @@ spec:
                   fieldPath: status.podIP
           # 下面的 args 参数会使用 POD_IP 对应的值覆盖 config map 中 jobmanager.rpc.address 的属性值。
           # 需要手动修改取提交
-          args: ["standalone-job", "--host", "$(POD_IP)", "--job-classname", "com.job.ClassName", <optional arguments>, <job arguments>] # 可选参数项: ["--job-id", "<job id>", "--fromSavepoint", "/path/to/savepoint", "--allowNonRestoredState"]
+          args: ["standalone-job", "--host", "$(POD_IP)", "--job-classname", "org.apache.flink.streaming.examples.windowing.TopSpeedWindowing"] # 可选参数项: ["--job-id", "<job id>", "--fromSavepoint", "/path/to/savepoint", "--allowNonRestoredState"]
+#          args: ["standalone-job", "--job-classname", "org.apache.flink.streaming.examples.windowing.TopSpeedWindowing"] # 可选的参数项: ["--job-id", "<job id>", "--fromSavepoint", "/path/to/savepoint", "--allowNonRestoredState"]
           ports:
             - containerPort: 6123
               name: rpc
@@ -38,11 +40,11 @@ spec:
           volumeMounts:
             - name: flink-config-volume
               mountPath: /opt/flink/conf
-            - name: job-artifacts-volume
-              mountPath: /opt/flink/usrlib
+#            - name: job-artifacts-volume
+#              mountPath: /opt/flink/usrlib
           securityContext:
             runAsUser: 9999  # 参考官方 flink 镜像中的 _flink_ 用户，如有必要可以修改
-      serviceAccountName: flink-service-account # 拥有创建、编辑、删除 ConfigMap 权限的 Service 账号
+      serviceAccountName: flink # 拥有创建、编辑、删除 ConfigMap 权限的 Service 账号
       volumes:
         - name: flink-config-volume
           configMap:
@@ -52,7 +54,7 @@ spec:
                 path: flink-conf.yaml
               - key: log4j-console.properties
                 path: log4j-console.properties
-        - name: job-artifacts-volume
-          hostPath:
-            # 需要手动去修改提交
-            path: /host/path/to/job/artifacts
+#        - name: job-artifacts-volume
+#          hostPath:
+#            # 需要手动去修改提交
+#            path: /host/path/to/job/artifacts

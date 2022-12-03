@@ -18,7 +18,19 @@ data:
     kubernetes.taskmanager.cpu: 0.5
     taskmanager.numberOfTaskSlots: 2
     parallelism.default: 1
+    
     execution.checkpointing.interval: 60s
+    execution.checkpointing.min-pause: 30s
+    execution.checkpointing.timeout : 30min
+    
+    kubernetes.cluster-id: flink-k8s-ha
+    high-availability: kubernetes
+    high-availability.storageDir: hdfs://emr-cluster/flink/recovery
+    restart-strategy: fixed-delay
+    restart-strategy.fixed-delay.attempts: 10
+    restart-strategy.fixed-delay.delay: 5min
+    
+    env.java.opts: -DHADOOP_USER_NAME=hadoop
 
   log4j-console.properties: |+
     # 如下配置会同时影响用户代码和 Flink 的日志行为

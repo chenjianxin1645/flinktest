@@ -72,6 +72,7 @@
         Dockerfile: 需要捆绑用户代码
         FROM apache/flink:1.16.0-scala_2.12
         RUN mkdir -p $FLINK_HOME/usrlib
+        COPY ./k8s/standalone/jar/flink-shaded-hadoop-2-2.8.3-10.0.jar $FLINK_HOME/usrlib/TopSpeedWindowing.jar
         COPY ./examples/streaming/TopSpeedWindowing.jar $FLINK_HOME/usrlib/TopSpeedWindowing.jar
     
         docker build -f ./Dockerfile -t flink-xander:1.16.0-scala_2.12 .
@@ -82,12 +83,6 @@
     kubectl apply -f ./flink-configuration-configmap.yaml
     kubectl apply -f ./flink-reactive-mode-configuration-configmap.yaml
 
-### deployment run job
-    kubectl apply -f ./application/jobmanager-application-non-ha.yaml
-    kubectl apply -f ./application/jobmanager-application-ha.yaml
-
-    kubectl apply -f ./application/taskmanager-job-deployment.yaml
-
 ### service
     kubectl apply -f ./jobmanager-service.yaml
     kubectl apply -f ./jobmanager-rest-service.yaml
@@ -95,6 +90,14 @@
     kubectl apply -f ./taskmanager-query-state-service.yaml
 
     kubectl get svc -n flink
+
+### deployment run job
+    kubectl apply -f ./application/jobmanager-application-non-ha.yaml
+    kubectl apply -f ./application/jobmanager-application-ha.yaml
+
+    kubectl apply -f ./application/taskmanager-job-deployment.yaml
+
+
 
 
 

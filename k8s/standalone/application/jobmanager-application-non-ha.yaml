@@ -12,8 +12,15 @@ spec:
     spec:
       serviceAccountName: flink
       restartPolicy: OnFailure # Always、OnFailure 和 Never
+#      securityContext:
+#        runAsUser: 9999  # 参考官方 flink 镜像中的 _flink_ 用户，如有必要可以修改
+#        runAsGroup: 9999
+#        fsGroup: 9999
+#      imagePullSecrets: #使用的secret
+#        - name: harbor          #使用前面创建的secret密钥
       containers:
         - name: jobmanager
+#          image: 192.168.10.217:8074/bigdata/flink-xander:1.16.0-scala_2.12
           image: flink-xander:1.16.0-scala_2.12
           env:
           # 需要手动去修改任务提交 外部提交作业传递
@@ -38,10 +45,12 @@ spec:
 #              mountPath: /opt/flink/usrlib
           securityContext:
             runAsUser: 9999  # 参考官方 flink 镜像中的 _flink_ 用户，如有必要可以修改
+#            runAsGroup: 9999
       volumes:
         - name: flink-config-volume
           configMap:
             name: flink-config
+#            defaultMode: 0755
             items:
               - key: flink-conf.yaml
                 path: flink-conf.yaml
