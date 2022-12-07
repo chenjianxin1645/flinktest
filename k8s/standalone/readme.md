@@ -4,7 +4,7 @@
     参考k8s.txt
     kubectl create namespace flink
     kubectl create serviceaccount flink -n flink
-    kubectl create clusterrolebinding flink-role-binding-flink --clusterrole=edit --serviceaccount=flink:flink
+    kubectl create clusterrolebinding flink-role-binding-flink3 --clusterrole=cluster-admin --serviceaccount=flink:flink
 
 ## flink run on session
     在 Kubernetes 上部署一个基本的 Flink session 集群 时，一般包括下面三个组件：
@@ -70,11 +70,6 @@
         
     构建一个已经包含 job artifacts 参数的自定义镜像。
         Dockerfile: 需要捆绑用户代码
-        FROM apache/flink:1.16.0-scala_2.12
-        RUN mkdir -p $FLINK_HOME/usrlib
-        COPY ./k8s/standalone/jar/flink-shaded-hadoop-2-2.8.3-10.0.jar $FLINK_HOME/usrlib/TopSpeedWindowing.jar
-        COPY ./examples/streaming/TopSpeedWindowing.jar $FLINK_HOME/usrlib/TopSpeedWindowing.jar
-    
         docker build -f ./Dockerfile -t flink-xander:1.16.0-scala_2.12 .
         docker tag flink-xander:1.16.0-scala_2.12 192.168.10.217:8074/bigdata/flink-xander:1.16.0-scala_2.12
         docker push 192.168.10.217:8074/bigdata/flink-xander:1.16.0-scala_2.12
@@ -97,8 +92,9 @@
 
     kubectl apply -f ./application/taskmanager-job-deployment.yaml
 
+    # 需要登陆k8s集群
+    /bin/flink list --target kubernetes-application -Dkubernetes.cluster-id=flink-jobmanager
+    ./bin/flink list -m localhost:30081
 
-
-
-
+    ./bin/flink cancel --target kubernetes-application -Dkubernetes.cluster-id=my-first-application-cluster <jobId>
 

@@ -2,9 +2,9 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   namespace: flink
-  name: flink-jobmanager
+  name: flink-jobmanager-ha
 spec:
-  parallelism: 2 # 通过设置大于 1 的整型值来开启 Standby JobManager
+  parallelism: 1 # 通过设置大于 1 的整型值来开启 Standby JobManager
   template:
     metadata:
       labels:

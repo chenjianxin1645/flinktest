@@ -19,13 +19,25 @@ data:
     taskmanager.numberOfTaskSlots: 2
     parallelism.default: 1
     
+    state.backend: rocksdb
+    state.checkpoint-storage: filesystem
+    state.checkpoints.dir: hdfs://emr-cluster/flink/flink-checkpoints
+    state.savepoints.dir: hdfs://emr-cluster/flink/flink-savepoints
+    state.backend.incremental: true
+    state.checkpoints.num-retained: 10
+    
+    execution.savepoint.ignore-unclaimed-state: true
+    execution.checkpointing.mode: EXACTLY_ONCE
     execution.checkpointing.interval: 60s
     execution.checkpointing.min-pause: 30s
-    execution.checkpointing.timeout : 30min
+    execution.checkpointing.timeout: 30min
     
-    kubernetes.cluster-id: flink-k8s-ha
+    kubernetes.namespace: flink
+    kubernetes.service-account: flink
+    kubernetes.cluster-id: flink-jobmanager-ha
     high-availability: kubernetes
     high-availability.storageDir: hdfs://emr-cluster/flink/recovery
+    
     restart-strategy: fixed-delay
     restart-strategy.fixed-delay.attempts: 10
     restart-strategy.fixed-delay.delay: 5min
